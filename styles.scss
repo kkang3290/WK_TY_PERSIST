@@ -1,0 +1,83 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Ma Shan Zheng', cursive;
+    background: linear-gradient(45deg, #f3e7e9, #e3eeff);
+    min-height: 100vh;
+    overflow: hidden; /* Prevent overall page scrolling */
+    position: relative;
+    /* Removed flexbox/grid for layout as content is on canvas */
+}
+
+/* Removed .container, .letter, .message, h1, .letter-content, p, .buttons, button styles */
+
+/* Removed heartbeat keyframes */
+/* @keyframes heartbeat { ... } */
+
+/* Removed fadeIn keyframes */
+/* @keyframes fadeIn { ... } */
+
+.w-100 {
+    width: 100%;
+}
+
+.h-100 {
+    height: 100%;
+}
+
+/* 烟花效果样式 */
+.firework {
+    position: fixed;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    animation: firework 3s ease-out infinite;
+    pointer-events: none;
+    z-index: 2;
+}
+
+@keyframes firework {
+    0% {
+        transform: translateY(100vh);
+        background: #ff4b4b;
+        box-shadow: 0 0 0 0 #ff4b4b;
+    }
+    50% {
+        background: #ff4b4b;
+        box-shadow: 0 0 20px 10px #ff4b4b;
+    }
+    100% {
+        transform: translateY(-100px);
+        background: transparent;
+        box-shadow: 0 0 0 0 transparent;
+    }
+}
+
+#cherryTree {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 1;
+}
+
+/* Mobile responsiveness - Simplified as content is on canvas */
+@media (max-width: 768px) {
+    /* body styles handled above */
+
+    /* Removed mobile styles for .container, .message, .buttons, button, .heart */
+
+    #cherryTree {
+        width: 100%;
+        height: 100vh; /* Full height on small screens */
+        /* Position and size handled above */
+    }
+} 
