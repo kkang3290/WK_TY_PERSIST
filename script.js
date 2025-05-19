@@ -24,11 +24,17 @@ document.addEventListener('DOMContentLoaded', () => {
     moonImage.src = 'moon.png';
     const arrowImage = new Image();
     arrowImage.src = 'arrow.png';
+    const riderImage = new Image();
+    riderImage.src = 'rider.gif';
+    const cloudImage = new Image();
+    cloudImage.src = 'cloud.gif';
     let imageLoaded = false;
     let loverImageLoaded = false;
     let sunImageLoaded = false;
     let moonImageLoaded = false;
     let arrowImageLoaded = false;
+    let riderImageLoaded = false;
+    let cloudImageLoaded = false;
 
     // Load landscape images
     const landscapeImages = [];
@@ -74,8 +80,17 @@ document.addEventListener('DOMContentLoaded', () => {
         moonImageLoaded = true;
     };
 
+    riderImage.onload = () => {
+        riderImageLoaded = true;
+    };
+
+    cloudImage.onload = () => {
+        cloudImageLoaded = true;
+    };
+
     // State
     let currentState = 'initial';
+    let journeyStartTime = null;
 
     // Text Content
     const initialMessage = [
@@ -95,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Button properties
     let yesButton = { text: "接受", x: 0, y: 0, width: 0, height: 0, isHovered: false };
     let noButton = { text: "考虑一下", x: 0, y: 0, width: 0, height: 0, isHovered: false };
+    let startButton = { text: "出发！", x: 0, y: 0, width: 0, height: 0, isHovered: false };
 
     // Layout properties
     let textArea = { x: 0, y: 0, width: 0, height: 0 };
@@ -166,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Calculate button dimensions
         ctx.font = `1.1rem 'Ma Shan Zheng', cursive`;
         const yesBtnPadding = { x: 30, y: 15 };
-        const noBtnPadding = { x: 30, y: 15 }; // Increased padding for better touch target
+        const noBtnPadding = { x: 30, y: 15 };
 
         const yesBtnMetrics = ctx.measureText(yesButton.text);
         yesButton.width = yesBtnMetrics.width + yesBtnPadding.x * 2;
@@ -176,7 +192,11 @@ document.addEventListener('DOMContentLoaded', () => {
         noButton.width = noBtnMetrics.width + noBtnPadding.x * 2;
         noButton.height = 25 + noBtnPadding.y * 2;
 
-        const buttonGap = isMobile ? 30 : 20; // Increased gap for mobile
+        const startBtnMetrics = ctx.measureText(startButton.text);
+        startButton.width = startBtnMetrics.width + yesBtnPadding.x * 2;
+        startButton.height = 25 + yesBtnPadding.y * 2;
+
+        const buttonGap = isMobile ? 30 : 20;
         const totalButtonWidth = yesButton.width + noButton.width + buttonGap;
         const startButtonX = textColumnWidth * 0.5 - totalButtonWidth * 0.5;
 
@@ -185,6 +205,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         noButton.x = startButtonX + yesButton.width + buttonGap;
         noButton.y = buttonsY;
+
+        startButton.x = canvas.width * 0.5 - startButton.width * 0.5;
+        startButton.y = buttonsY + 50;
 
         if (imageLoaded && scene) {
             scene.adjustTreePosition(canvas.width, canvas.height);
@@ -271,23 +294,34 @@ document.addEventListener('DOMContentLoaded', () => {
         const radius = 25;
         const textOffset = { x: 0, y: 0 };
 
-        // Yes Button
-        const yesBtnColor = yesButton.isHovered ? '#ff3333' : '#ff4b4b';
-        drawRoundedRect(context, yesButton.x, yesButton.y, yesButton.width, yesButton.height, radius, yesBtnColor);
-        context.fillStyle = 'white';
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        context.font = `1.1rem 'Ma Shan Zheng', cursive`;
-        context.fillText(yesButton.text, yesButton.x + yesButton.width * 0.5, yesButton.y + yesButton.height * 0.5);
+        if (currentState === 'initial') {
+            // Yes Button
+            const yesBtnColor = yesButton.isHovered ? '#ff3333' : '#ff4b4b';
+            drawRoundedRect(context, yesButton.x, yesButton.y, yesButton.width, yesButton.height, radius, yesBtnColor);
+            context.fillStyle = 'white';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.font = `1.1rem 'Ma Shan Zheng', cursive`;
+            context.fillText(yesButton.text, yesButton.x + yesButton.width * 0.5, yesButton.y + yesButton.height * 0.5);
 
-        // No Button
-        const noBtnColor = noButton.isHovered ? '#e0e0e0' : '#f0f0f0';
-        drawRoundedRect(context, noButton.x, noButton.y, noButton.width, noButton.height, radius, noBtnColor);
-        context.fillStyle = '#666';
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        context.font = `1.1rem 'Ma Shan Zheng', cursive`;
-        context.fillText(noButton.text, noButton.x + noButton.width * 0.5, noButton.y + noButton.height * 0.5);
+            // No Button
+            const noBtnColor = noButton.isHovered ? '#e0e0e0' : '#f0f0f0';
+            drawRoundedRect(context, noButton.x, noButton.y, noButton.width, noButton.height, radius, noBtnColor);
+            context.fillStyle = '#666';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.font = `1.1rem 'Ma Shan Zheng', cursive`;
+            context.fillText(noButton.text, noButton.x + noButton.width * 0.5, noButton.y + noButton.height * 0.5);
+        } else if (currentState === 'accepted') {
+            // Start Button
+            const startBtnColor = startButton.isHovered ? '#ff3333' : '#ff4b4b';
+            drawRoundedRect(context, startButton.x, startButton.y, startButton.width, startButton.height, radius, startBtnColor);
+            context.fillStyle = 'white';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.font = `1.1rem 'Ma Shan Zheng', cursive`;
+            context.fillText(startButton.text, startButton.x + startButton.width * 0.5, startButton.y + startButton.height * 0.5);
+        }
     }
 
     // Draw heart on canvas
@@ -679,13 +713,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Cloud class for journey screen
     class Cloud {
-        constructor(x, y) {
+        constructor(x, y, speed) {
             this.x = x;
             this.y = y;
-            this.width = Math.random() * 100 + 50;
-            this.height = Math.random() * 30 + 20;
-            this.speed = Math.random() * 0.5 + 0.2;
+            this.speed = speed;
+            this.width = 300;  // 增加云朵大小
+            this.height = 150; // 增加云朵大小
         }
 
         update() {
@@ -695,15 +730,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        isDead() {
-            return false;
-        }
-
         draw(ctx) {
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.beginPath();
-            ctx.ellipse(this.x, this.y, this.width, this.height, 0, 0, Math.PI * 2);
-            ctx.fill();
+            if (cloudImageLoaded) {
+                ctx.drawImage(cloudImage, this.x, this.y, this.width, this.height);
+            }
         }
     }
 
@@ -733,8 +763,50 @@ document.addEventListener('DOMContentLoaded', () => {
     let weatherEffect = new WeatherEffect();
     let lover = new Lover();
 
+    // Journey Scene Manager
+    class JourneyScene {
+        constructor() {
+            this.clouds = [];
+            this.initializeClouds();
+        }
+
+        initializeClouds() {
+            // 创建4个云朵，设置不同的初始位置
+            const cloudPositions = [
+                { x: -300, y: 50 },     // 最左边的云，从屏幕外开始
+                { x: canvas.width * 0.2, y: 100 },   // 左中位置
+                { x: canvas.width + 500, y: 30 },    // 右中位置
+                { x: canvas.width + 1000, y: 80 }     // 最右边的云，从屏幕外开始
+            ];
+
+            cloudPositions.forEach(pos => {
+                const speed = Math.random() * 0.3 + 0.1;
+                this.clouds.push(new Cloud(pos.x, pos.y, speed));
+            });
+        }
+
+        update() {
+            this.clouds.forEach(cloud => cloud.update());
+        }
+
+        draw(ctx) {
+            // Draw clouds
+            this.clouds.forEach(cloud => cloud.draw(ctx));
+        }
+    }
+
+    // Create journey scene instance
+    let journeyScene = new JourneyScene();
+
+    // Create rider image element
+    const riderElement = document.createElement('img');
+    riderElement.src = 'rider.gif';
+    riderElement.style.position = 'absolute';
+    riderElement.style.zIndex = '2';
+    riderElement.style.pointerEvents = 'none';
+    document.body.appendChild(riderElement);
+
     // Animation loop
-    // Use performance.now() for more accurate time tracking
     function animate(currentTime) {
         // Clear canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -774,6 +846,37 @@ document.addEventListener('DOMContentLoaded', () => {
             drawTitle(ctx, acceptedTitle, titleY, textArea.width);
             const lineHeight = window.innerWidth <= 768 ? 25 : 30;
             drawTextContent(ctx, acceptedMessage, titleY + 60 + (window.innerWidth <= 768 ? 10 : 20), textArea.width, lineHeight);
+            drawButtons(ctx);
+        } else if (currentState === 'journey') {
+            // Draw background gradient for journey state
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');  // Sky blue
+            gradient.addColorStop(1, '#E0F7FF');  // Light blue
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Only draw if images are loaded
+            if (cloudImageLoaded) {
+                journeyScene.update();
+                journeyScene.draw(ctx);
+
+                // Update rider position
+                const x = canvas.width * 0.5 - 200;
+                const y = canvas.height * 0.6;
+                riderElement.style.width = '400px';
+                riderElement.style.height = '400px';
+                riderElement.style.left = `${x}px`;
+                riderElement.style.top = `${y}px`;
+
+                // Draw timer text
+                if (journeyStartTime) {
+                    const elapsedSeconds = Math.floor((performance.now() - journeyStartTime) / 1000);
+                    ctx.fillStyle = '#333';
+                    ctx.font = '2rem "Ma Shan Zheng", cursive';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`我们已经一起度过了 ${elapsedSeconds} 秒`, canvas.width * 0.5, canvas.height * 0.5);
+                }
+            }
         }
 
         animationFrameId = requestAnimationFrame(animate);
@@ -790,6 +893,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let yesHovered = mouseX > yesButton.x && mouseX < yesButton.x + yesButton.width && mouseY > yesButton.y && mouseY < yesButton.y + yesButton.height;
         let noHovered = mouseX > noButton.x && mouseX < noButton.x + noButton.width && mouseY > noButton.y && mouseY < noButton.y + noButton.height;
+        let startHovered = mouseX > startButton.x && mouseX < startButton.x + startButton.width && mouseY > startButton.y && mouseY < startButton.y + startButton.height;
 
         if (yesHovered !== yesButton.isHovered) {
             yesButton.isHovered = yesHovered;
@@ -816,6 +920,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
+        if (startHovered !== startButton.isHovered) {
+            startButton.isHovered = startHovered;
+        }
     });
 
     // Handle clicks on canvas for buttons
@@ -833,6 +940,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (yesClicked || (noClicked && rejectCount >= 3)) {
                 currentState = 'accepted';
                 createFireworks();
+            }
+        } else if (currentState === 'accepted') {
+            const startClicked = mouseX > startButton.x && mouseX < startButton.x + startButton.width && 
+                               mouseY > startButton.y && mouseY < startButton.y + startButton.height;
+            
+            if (startClicked) {
+                currentState = 'journey';
+                journeyStartTime = performance.now();
             }
         }
     });
