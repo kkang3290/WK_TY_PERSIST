@@ -143,99 +143,102 @@ document.addEventListener('DOMContentLoaded', () => {
         // Calculate layout dimensions and positions
         const isMobile = window.innerWidth <= 768;
         const textColumnWidth = isMobile ? canvas.width : canvas.width * 0.5;
-        const padding = isMobile ? 20 : 40;
+        const padding = isMobile ? canvas.width * 0.05 : canvas.width * 0.04;
 
         textArea.x = padding;
         textArea.width = textColumnWidth - padding * 2;
         textArea.height = canvas.height - padding * 2;
 
         // Calculate positions
-        titleY = padding + 60;
-        heartY = titleY + 80;
+        titleY = padding + canvas.height * 0.08;
+        heartY = titleY + canvas.height * 0.1;
         heartX = textColumnWidth * 0.5;
         let currentTextY = heartY + heartSize * 0.7 + padding;
 
         // Calculate text line heights
         ctx.font = `${isMobile ? 1 : 1.2}rem 'Ma Shan Zheng', cursive`;
-        const lineHeight = isMobile ? 25 : 30;
+        const lineHeight = isMobile ? canvas.height * 0.03 : canvas.height * 0.035;
         let totalTextHeight = 0;
         const messageToMeasure = currentState === 'pre-initial' ? preInitialMessage : 
                                currentState === 'initial' ? initialMessage : acceptedMessage;
 
         if (currentState === 'pre-initial') {
-            totalTextHeight += 60;
+            totalTextHeight += canvas.height * 0.08;
             messageToMeasure.forEach(paragraph => {
                 const lines = getWrappedTextLines(ctx, paragraph, textArea.width);
                 totalTextHeight += lines.length * lineHeight;
             });
-            totalTextHeight += 100;
+            totalTextHeight += canvas.height * 0.12;
         } else if (currentState === 'initial') {
-            totalTextHeight += 60;
+            totalTextHeight += canvas.height * 0.08;
             totalTextHeight += heartSize * 0.7;
             messageToMeasure.forEach(paragraph => {
                 const lines = getWrappedTextLines(ctx, paragraph, textArea.width);
                 totalTextHeight += lines.length * lineHeight;
             });
-            totalTextHeight += 150;
+            totalTextHeight += canvas.height * 0.15;
         } else {
-            totalTextHeight += 60;
+            totalTextHeight += canvas.height * 0.08;
             messageToMeasure.forEach(paragraph => {
                 const lines = getWrappedTextLines(ctx, paragraph, textArea.width);
                 totalTextHeight += lines.length * lineHeight;
             });
-            totalTextHeight += 50;
+            totalTextHeight += canvas.height * 0.06;
         }
 
         let startY = padding + (canvas.height - padding * 2 - totalTextHeight) * 0.5;
         startY = Math.max(padding, startY);
 
-        titleY = startY + 40;
-        heartY = titleY + 80;
+        titleY = startY + canvas.height * 0.05;
+        heartY = titleY + canvas.height * 0.1;
         currentTextY = heartY + heartSize * 0.7 + padding;
 
         textArea.y = startY;
         textArea.height = canvas.height - startY - padding;
 
-        buttonsY = currentTextY + totalTextHeight - (currentState === 'initial' ? 100 : 0);
-        if (currentState === 'accepted') {
-            buttonsY = canvas.height + 100;
-        }
-
         // Calculate button dimensions
         ctx.font = `1.1rem 'Ma Shan Zheng', cursive`;
-        const btnPadding = { x: 30, y: 15 };
+        const btnPadding = { 
+            x: canvas.width * 0.03,
+            y: canvas.height * 0.02
+        };
 
         const yesBtnMetrics = ctx.measureText(yesButton.text);
         yesButton.width = yesBtnMetrics.width + btnPadding.x * 2;
-        yesButton.height = 25 + btnPadding.y * 2;
+        yesButton.height = canvas.height * 0.04 + btnPadding.y * 2;
 
         const noBtnMetrics = ctx.measureText(noButton.text);
         noButton.width = noBtnMetrics.width + btnPadding.x * 2;
-        noButton.height = 25 + btnPadding.y * 2;
+        noButton.height = canvas.height * 0.04 + btnPadding.y * 2;
 
         const startBtnMetrics = ctx.measureText(startButton.text);
         startButton.width = startBtnMetrics.width + btnPadding.x * 2;
-        startButton.height = 25 + btnPadding.y * 2;
+        startButton.height = canvas.height * 0.04 + btnPadding.y * 2;
 
         const continueBtnMetrics = ctx.measureText(continueButton.text);
         continueButton.width = continueBtnMetrics.width + btnPadding.x * 2;
-        continueButton.height = 25 + btnPadding.y * 2;
+        continueButton.height = canvas.height * 0.04 + btnPadding.y * 2;
 
-        const buttonGap = isMobile ? 30 : 20;
+        const buttonGap = isMobile ? canvas.width * 0.04 : canvas.width * 0.02;
         const totalButtonWidth = yesButton.width + noButton.width + buttonGap;
         const startButtonX = textColumnWidth * 0.5 - totalButtonWidth * 0.5;
 
-        yesButton.x = startButtonX;
-        yesButton.y = buttonsY;
-
-        noButton.x = startButtonX + yesButton.width + buttonGap;
-        noButton.y = buttonsY;
-
-        startButton.x = canvas.width * 0.5 - startButton.width * 0.5;
-        startButton.y = buttonsY + 50;
-
-        continueButton.x = canvas.width * 0.5 - continueButton.width * 0.5;
-        continueButton.y = buttonsY + 50;
+        // Position buttons based on state
+        if (currentState === 'pre-initial') {
+            // Position continue button
+            continueButton.x = canvas.width * 0.5 - continueButton.width * 0.5;
+            continueButton.y = canvas.height * 0.8;
+        } else if (currentState === 'initial') {
+            // Position yes/no buttons
+            yesButton.x = canvas.width * 0.5 - totalButtonWidth * 0.5;
+            yesButton.y = canvas.height * 0.8;
+            noButton.x = yesButton.x + yesButton.width + buttonGap;
+            noButton.y = yesButton.y;
+        } else if (currentState === 'accepted') {
+            // Position start button
+            startButton.x = canvas.width * 0.5 - startButton.width * 0.5;
+            startButton.y = canvas.height * 0.8;
+        }
 
         if (imageLoaded && scene) {
             scene.adjustTreePosition(canvas.width, canvas.height);
@@ -549,9 +552,9 @@ document.addEventListener('DOMContentLoaded', () => {
         constructor() {
             this.isDay = true;
             this.transitionProgress = 0;
-            this.transitionDuration = 15 * 1000; // 15 seconds
+            this.transitionDuration = 5 * 1000; // 5 seconds
             this.lastTransitionTime = performance.now();
-            this.fadeDuration = 2000; // 2 seconds fade
+            this.fadeDuration = 6000; // 6 seconds fade
             this.fadeStartTime = null;
             this.isFading = false;
         }
@@ -584,16 +587,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const gradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
             
             if (this.isDay) {
-                // Day to night transition
+                // Day to night transition with smoother colors
                 const dayColor = `rgba(135, 206, 235, ${1 - this.transitionProgress})`;
                 const nightColor = `rgba(25, 25, 112, ${this.transitionProgress})`;
                 gradient.addColorStop(0, this.isFading ? dayColor : '#87CEEB');
+                gradient.addColorStop(0.5, this.isFading ? 
+                    `rgba(${135 + (25 - 135) * this.transitionProgress}, 
+                          ${206 + (25 - 206) * this.transitionProgress}, 
+                          ${235 + (112 - 235) * this.transitionProgress}, 
+                          ${0.8 + 0.2 * this.transitionProgress})` : 
+                    '#87CEEB');
                 gradient.addColorStop(1, this.isFading ? nightColor : '#FFFFFF');
             } else {
-                // Night to day transition
+                // Night to day transition with smoother colors
                 const nightColor = `rgba(25, 25, 112, ${1 - this.transitionProgress})`;
                 const dayColor = `rgba(135, 206, 235, ${this.transitionProgress})`;
                 gradient.addColorStop(0, this.isFading ? nightColor : '#191970');
+                gradient.addColorStop(0.5, this.isFading ? 
+                    `rgba(${25 + (135 - 25) * this.transitionProgress}, 
+                          ${25 + (206 - 25) * this.transitionProgress}, 
+                          ${112 + (235 - 112) * this.transitionProgress}, 
+                          ${0.8 + 0.2 * this.transitionProgress})` : 
+                    '#191970');
                 gradient.addColorStop(1, this.isFading ? dayColor : '#000033');
             }
             
@@ -747,8 +762,8 @@ document.addEventListener('DOMContentLoaded', () => {
             this.x = x;
             this.y = y;
             this.speed = speed;
-            this.width = 300;  // 增加云朵大小
-            this.height = 150; // 增加云朵大小
+            this.width = Math.min(window.innerWidth, window.innerHeight) * 0.3;  // 30% of smaller dimension
+            this.height = this.width * 0.5; // Maintain aspect ratio
         }
 
         update() {
@@ -799,12 +814,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         initializeClouds() {
-            // 创建4个云朵，设置不同的初始位置
+            const isMobile = window.innerWidth <= 768;
+            const cloudSize = Math.min(canvas.width, canvas.height) * 0.3;
+            
+            // Create clouds with relative positioning
             const cloudPositions = [
-                { x: -300, y: 50 },     // 最左边的云，从屏幕外开始
-                { x: canvas.width * 0.2, y: 100 },   // 左中位置
-                { x: canvas.width + 500, y: 30 },    // 右中位置
-                { x: canvas.width + 1000, y: 80 }     // 最右边的云，从屏幕外开始
+                { x: -cloudSize, y: canvas.height * 0.1 },     // Left cloud
+                { x: canvas.width * 0.2, y: canvas.height * 0.15 },   // Left middle
+                { x: canvas.width + 100 + cloudSize, y: canvas.height * 0.08 },    // Right middle
+                { x: canvas.width + 100 + cloudSize * 4, y: canvas.height * 0.12 }     // Right cloud
             ];
 
             cloudPositions.forEach(pos => {
@@ -818,7 +836,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         draw(ctx) {
-            // Draw clouds
             this.clouds.forEach(cloud => cloud.draw(ctx));
         }
     }
@@ -852,12 +869,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentState === 'pre-initial') {
             riderElement.style.display = 'none'; // Hide rider
             // Show and position flower
-            const flowerSize = Math.min(canvas.width, canvas.height) * 0.4; // 40% of the smaller dimension
+            const isMobile = window.innerWidth <= 768;
+            const flowerSize = isMobile ? 
+                Math.min(canvas.width, canvas.height) * 0.6 : // 60% on mobile
+                Math.min(canvas.width, canvas.height) * 0.4; // 40% on desktop
             flowerElement.style.display = 'block';
             flowerElement.style.width = `${flowerSize}px`;
             flowerElement.style.height = `${flowerSize}px`;
-            flowerElement.style.right = '350px';
-            flowerElement.style.bottom = '250px';
+            
+            // Adjust flower position based on screen size
+            if (isMobile) {
+                flowerElement.style.right = `${canvas.width * 0.05}px`; // 5% from right
+                flowerElement.style.bottom = `${canvas.height * 0.15}px`; // 15% from bottom
+            } else {
+                flowerElement.style.right = `${canvas.width * 0.2}px`; // 20% from right
+                flowerElement.style.bottom = `${canvas.height * 0.2}px`; // 20% from bottom
+            }
 
             // Draw background gradient for pre-initial state
             const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
@@ -867,14 +894,20 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Draw text content more towards center
-            const textX = canvas.width * 0.25; // 25% from left edge
-            const textY = canvas.height * 0.25; // 25% from top
-            const textWidth = canvas.width * 0.35; // 35% of canvas width for text
+            const textX = isMobile ? 
+                canvas.width * 0.1 : // 10% from left on mobile
+                canvas.width * 0.25; // 25% from left on desktop
+            const textY = isMobile ? 
+                canvas.height * 0.15 : // 15% from top on mobile
+                canvas.height * 0.25; // 25% from top on desktop
+            const textWidth = isMobile ? 
+                canvas.width * 0.8 : // 80% width on mobile
+                canvas.width * 0.35; // 35% width on desktop
 
             // Draw title
             ctx.fillStyle = '#ff4b4b';
             ctx.textAlign = 'left';
-            ctx.font = `${window.innerWidth <= 768 ? 2 : 2.5}rem 'Ma Shan Zheng', cursive`;
+            ctx.font = `${isMobile ? 1.8 : 2.5}rem 'Ma Shan Zheng', cursive`;
             ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
             ctx.shadowBlur = 4;
             ctx.shadowOffsetX = 2;
@@ -886,10 +919,10 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.shadowOffsetY = 0;
 
             // Draw message
-            const lineHeight = window.innerWidth <= 768 ? 25 : 30;
+            const lineHeight = isMobile ? 22 : 30;
             ctx.fillStyle = '#666';
-            ctx.font = `${window.innerWidth <= 768 ? 1 : 1.2}rem 'Ma Shan Zheng', cursive`;
-            let currentY = textY + 60;
+            ctx.font = `${isMobile ? 1 : 1.2}rem 'Ma Shan Zheng', cursive`;
+            let currentY = textY + (isMobile ? canvas.height * 0.05 : canvas.height * 0.08); // 5% or 8% of screen height
             preInitialMessage.forEach(paragraph => {
                 const lines = getWrappedTextLines(ctx, paragraph, textWidth);
                 lines.forEach(line => {
@@ -906,12 +939,13 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.fillStyle = 'white';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.font = `1.1rem 'Ma Shan Zheng', cursive`;
+            ctx.font = `${isMobile ? 1 : 1.1}rem 'Ma Shan Zheng', cursive`;
             ctx.fillText(continueButton.text, continueButton.x + continueButton.width * 0.5, continueButton.y + continueButton.height * 0.5);
         } else if (currentState === 'initial') {
-            flowerElement.style.display = 'none'; // Hide flower
-            riderElement.style.display = 'none'; // Hide rider
-            // Draw background gradient for initial state
+            flowerElement.style.display = 'none';
+            riderElement.style.display = 'none';
+            
+            // Draw background gradient
             const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
             gradient.addColorStop(0, '#f3e7e9');
             gradient.addColorStop(1, '#e3eeff');
@@ -922,14 +956,34 @@ document.addEventListener('DOMContentLoaded', () => {
             scene.update(currentTime);
             scene.draw();
 
-            // Draw text content, heart, and buttons
+            // Draw text content and heart
             drawTitle(ctx, titleText, titleY, textArea.width);
             drawHeart(ctx, heartX, heartY, heartSize);
             const lineHeight = window.innerWidth <= 768 ? 25 : 30;
             drawTextContent(ctx, initialMessage, heartY + heartSize * 0.7 + (window.innerWidth <= 768 ? 10 : 20), textArea.width, lineHeight);
-            drawButtons(ctx);
+            
+            // Draw buttons
+            const radius = 25;
+            
+            // Yes Button
+            const yesBtnColor = yesButton.isHovered ? '#ff3333' : '#ff4b4b';
+            drawRoundedRect(ctx, yesButton.x, yesButton.y, yesButton.width, yesButton.height, radius, yesBtnColor);
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = `1.1rem 'Ma Shan Zheng', cursive`;
+            ctx.fillText(yesButton.text, yesButton.x + yesButton.width * 0.5, yesButton.y + yesButton.height * 0.5);
+
+            // No Button
+            const noBtnColor = noButton.isHovered ? '#e0e0e0' : '#f0f0f0';
+            drawRoundedRect(ctx, noButton.x, noButton.y, noButton.width, noButton.height, radius, noBtnColor);
+            ctx.fillStyle = '#666';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = `1.1rem 'Ma Shan Zheng', cursive`;
+            ctx.fillText(noButton.text, noButton.x + noButton.width * 0.5, noButton.y + noButton.height * 0.5);
         } else if (currentState === 'accepted') {
-            riderElement.style.display = 'none'; // Hide rider
+            riderElement.style.display = 'none';
             // Update and draw day/night cycle
             dayNightCycle.update(currentTime);
             dayNightCycle.draw(ctx, canvas.width, canvas.height);
@@ -948,7 +1002,7 @@ document.addEventListener('DOMContentLoaded', () => {
             drawTextContent(ctx, acceptedMessage, titleY + 60 + (window.innerWidth <= 768 ? 10 : 20), textArea.width, lineHeight);
             drawButtons(ctx);
         } else if (currentState === 'journey') {
-            riderElement.style.display = 'block'; // Show rider
+            riderElement.style.display = 'block';
             // Draw background gradient for journey state
             const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
             gradient.addColorStop(0, '#87CEEB');  // Sky blue
@@ -961,21 +1015,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 journeyScene.update();
                 journeyScene.draw(ctx);
 
-                // Update rider position
-                const x = canvas.width * 0.5 - 200;
-                const y = canvas.height * 0.6;
-                riderElement.style.width = '400px';
-                riderElement.style.height = '400px';
+                // Update rider position with relative sizing
+                const isMobile = window.innerWidth <= 768;
+                const riderSize = isMobile ? 
+                    Math.min(canvas.width, canvas.height) * 0.4 : // 40% on mobile
+                    Math.min(canvas.width, canvas.height) * 0.3; // 30% on desktop
+                
+                const x = canvas.width * 0.5 - riderSize * 0.5; // Center horizontally
+                const y = canvas.height * 0.6 - riderSize * 0.5; // Position at 60% of screen height
+                
+                riderElement.style.width = `${riderSize}px`;
+                riderElement.style.height = `${riderSize}px`;
                 riderElement.style.left = `${x}px`;
                 riderElement.style.top = `${y}px`;
 
-                // Draw timer text
+                // Draw timer text with relative positioning
                 if (journeyStartTime) {
                     const elapsedSeconds = Math.floor((performance.now() - journeyStartTime) / 1000);
                     ctx.fillStyle = '#333';
-                    ctx.font = '2rem "Ma Shan Zheng", cursive';
+                    ctx.font = `${isMobile ? 1.5 : 2}rem "Ma Shan Zheng", cursive`;
                     ctx.textAlign = 'center';
-                    ctx.fillText(`我们已经一起度过了 ${elapsedSeconds} 秒`, canvas.width * 0.5, canvas.height * 0.5);
+                    ctx.fillText(
+                        `我们已经一起度过了 ${elapsedSeconds} 秒`, 
+                        canvas.width * 0.5, 
+                        canvas.height * 0.3 // Position text at 30% of screen height
+                    );
                 }
             }
         }
@@ -1037,74 +1101,105 @@ document.addEventListener('DOMContentLoaded', () => {
         const mouseY = event.clientY - rect.top;
 
         if (currentState === 'pre-initial') {
-            const continueClicked = mouseX > continueButton.x && mouseX < continueButton.x + continueButton.width && 
-                                  mouseY > continueButton.y && mouseY < continueButton.y + continueButton.height;
-            
-            if (continueClicked) {
+            if (mouseX >= continueButton.x && 
+                mouseX <= continueButton.x + continueButton.width && 
+                mouseY >= continueButton.y && 
+                mouseY <= continueButton.y + continueButton.height) {
                 currentState = 'initial';
+                resizeCanvas(); // Recalculate positions for new state
             }
         } else if (currentState === 'initial') {
-            const yesClicked = mouseX > yesButton.x && mouseX < yesButton.x + yesButton.width && 
-                             mouseY > yesButton.y && mouseY < yesButton.y + yesButton.height;
-            const noClicked = mouseX > noButton.x && mouseX < noButton.x + noButton.width && 
-                            mouseY > noButton.y && mouseY < noButton.y + noButton.height;
-
-            if (yesClicked || (noClicked && rejectCount >= 3)) {
+            if (mouseX >= yesButton.x && 
+                mouseX <= yesButton.x + yesButton.width && 
+                mouseY >= yesButton.y && 
+                mouseY <= yesButton.y + yesButton.height) {
                 currentState = 'accepted';
                 createFireworks();
+                resizeCanvas(); // Recalculate positions for new state
+            } else if (mouseX >= noButton.x && 
+                      mouseX <= noButton.x + noButton.width && 
+                      mouseY >= noButton.y && 
+                      mouseY <= noButton.y + noButton.height) {
+                rejectCount++;
+                if (rejectCount >= 3) {
+                    currentState = 'accepted';
+                    createFireworks();
+                    resizeCanvas(); // Recalculate positions for new state
+                } else {
+                    // Move no button
+                    const maxX = canvas.width - noButton.width - 20;
+                    const maxY = canvas.height - noButton.height - 20;
+                    const minX = 20;
+                    const minY = 20;
+                    
+                    noButton.x = Math.min(Math.max(Math.random() * maxX, minX), maxX);
+                    noButton.y = Math.min(Math.max(Math.random() * maxY, minY), maxY);
+                }
             }
         } else if (currentState === 'accepted') {
-            const startClicked = mouseX > startButton.x && mouseX < startButton.x + startButton.width && 
-                               mouseY > startButton.y && mouseY < startButton.y + startButton.height;
-            
-            if (startClicked) {
+            if (mouseX >= startButton.x && 
+                mouseX <= startButton.x + startButton.width && 
+                mouseY >= startButton.y && 
+                mouseY <= startButton.y + startButton.height) {
                 currentState = 'journey';
                 journeyStartTime = performance.now();
+                resizeCanvas(); // Recalculate positions for new state
             }
         }
     });
 
     // Add touch event handling for mobile
     canvas.addEventListener('touchstart', (event) => {
-        event.preventDefault(); // Prevent default touch behavior
+        event.preventDefault();
         const rect = canvas.getBoundingClientRect();
         const touch = event.touches[0];
         const touchX = touch.clientX - rect.left;
         const touchY = touch.clientY - rect.top;
 
         if (currentState === 'pre-initial') {
-            const continueTouched = touchX > continueButton.x && touchX < continueButton.x + continueButton.width && 
-                                  touchY > continueButton.y && touchY < continueButton.y + continueButton.height;
-            
-            if (continueTouched) {
+            if (touchX >= continueButton.x && 
+                touchX <= continueButton.x + continueButton.width && 
+                touchY >= continueButton.y && 
+                touchY <= continueButton.y + continueButton.height) {
                 currentState = 'initial';
+                resizeCanvas(); // Recalculate positions for new state
             }
         } else if (currentState === 'initial') {
-            const yesTouched = touchX > yesButton.x && touchX < yesButton.x + yesButton.width && 
-                             touchY > yesButton.y && touchY < yesButton.y + yesButton.height;
-            const noTouched = touchX > noButton.x && touchX < noButton.x + noButton.width && 
-                            touchY > noButton.y && touchY < noButton.y + noButton.height;
-
-            if (yesTouched || (noTouched && rejectCount >= 3)) {
+            if (touchX >= yesButton.x && 
+                touchX <= yesButton.x + yesButton.width && 
+                touchY >= yesButton.y && 
+                touchY <= yesButton.y + yesButton.height) {
                 currentState = 'accepted';
                 createFireworks();
-            } else if (noTouched) {
+                resizeCanvas(); // Recalculate positions for new state
+            } else if (touchX >= noButton.x && 
+                      touchX <= noButton.x + noButton.width && 
+                      touchY >= noButton.y && 
+                      touchY <= noButton.y + noButton.height) {
                 rejectCount++;
-                if (rejectCount >= 2) {
-                    noButton.text = "我同意";
+                if (rejectCount >= 3) {
+                    currentState = 'accepted';
+                    createFireworks();
+                    resizeCanvas(); // Recalculate positions for new state
                 } else {
-                    // Ensure button stays within visible area on mobile
+                    // Move no button
                     const maxX = canvas.width - noButton.width - 20;
                     const maxY = canvas.height - noButton.height - 20;
                     const minX = 20;
                     const minY = 20;
                     
-                    const x = Math.min(Math.max(Math.random() * maxX, minX), maxX);
-                    const y = Math.min(Math.max(Math.random() * maxY, minY), maxY);
-                    
-                    noButton.x = x;
-                    noButton.y = y;
+                    noButton.x = Math.min(Math.max(Math.random() * maxX, minX), maxX);
+                    noButton.y = Math.min(Math.max(Math.random() * maxY, minY), maxY);
                 }
+            }
+        } else if (currentState === 'accepted') {
+            if (touchX >= startButton.x && 
+                touchX <= startButton.x + startButton.width && 
+                touchY >= startButton.y && 
+                touchY <= startButton.y + startButton.height) {
+                currentState = 'journey';
+                journeyStartTime = performance.now();
+                resizeCanvas(); // Recalculate positions for new state
             }
         }
     });
@@ -1143,6 +1238,40 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.appendChild(raindrop);
         }
     }
+
+    // Add music control
+    const bgMusic = document.getElementById('bgMusic');
+    const musicControl = document.getElementById('musicControl');
+    let isMusicPlaying = false;
+
+    // Function to toggle music
+    function toggleMusic() {
+        if (isMusicPlaying) {
+            bgMusic.pause();
+            musicControl.classList.remove('playing');
+        } else {
+            bgMusic.play();
+            musicControl.classList.add('playing');
+        }
+        isMusicPlaying = !isMusicPlaying;
+    }
+
+    // Add click event to music control button
+    musicControl.addEventListener('click', toggleMusic);
+
+    // Auto play music when page loads
+    bgMusic.play().then(() => {
+        isMusicPlaying = true;
+        musicControl.classList.add('playing');
+    }).catch(error => {
+        console.log('Auto-play failed:', error);
+        // If auto-play fails, try to play on first user interaction
+        document.addEventListener('click', () => {
+            if (!isMusicPlaying) {
+                toggleMusic();
+            }
+        }, { once: true });
+    });
 
     // Initial setup: start loading image. Resize and animation will start on image load.
     // resizeCanvas(); // Called on image load

@@ -8,6 +8,12 @@
 </head>
 <body>
     <canvas class="w-100 h-100" id="cherryTree"></canvas>
+    <audio id="bgMusic" autoplay loop>
+        <source src="music.mp3" type="audio/mpeg">
+    </audio>
+    <button id="musicControl" class="music-control">
+        <span class="music-icon">🎵</span>
+    </button>
     <script src="script.js"></script>
 </body>
 </html> 
@@ -21,5 +27,55 @@
 }
 .overflow {
     overflow: hidden;
+}
+
+.music-control {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    cursor: pointer;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    padding: 0;
+    line-height: 1;
+}
+
+.music-control:hover {
+    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.music-icon {
+    font-size: 20px;
+    color: #ff4b4b;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    transform-origin: 50% 50%;
+    position: relative;
+}
+
+.music-control.playing .music-icon {
+    animation: rotate 3s linear infinite;
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 </style>
