@@ -28,6 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
     riderImage.src = 'rider.gif';
     const cloudImage = new Image();
     cloudImage.src = 'cloud.gif';
+    const flowerImage = new Image();
+    flowerImage.src = 'flower.webp';
     let imageLoaded = false;
     let loverImageLoaded = false;
     let sunImageLoaded = false;
@@ -35,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let arrowImageLoaded = false;
     let riderImageLoaded = false;
     let cloudImageLoaded = false;
+    let flowerImageLoaded = false;
 
     // Load landscape images
     const landscapeImages = [];
@@ -88,13 +91,23 @@ document.addEventListener('DOMContentLoaded', () => {
         cloudImageLoaded = true;
     };
 
+    flowerImage.onload = () => {
+        flowerImageLoaded = true;
+    };
+
     // State
-    let currentState = 'initial';
+    let currentState = 'pre-initial';
     let journeyStartTime = null;
 
     // Text Content
+    const preInitialMessage = [
+        "亲爱的越：",
+        "2024年5月22日，我们第一次见面，期间我们经历了许多甜蜜，",
+        "你知道吗？二月我们只有四天没有聊天，三月仅一天，四月是全勤，",
+        "它似乎早就不是闲聊，而且暗藏着情愫。"
+    ];
     const initialMessage = [
-        "我想写信给你，可这情愫长绵，我又难免羞涩，于是托这封信替我去讲。",
+        "我喜欢你，可这情愫长绵，我又难免羞涩，于是托这封信替我去讲。",
         "这些年，我去过许多地方，淋过重庆的雨，登过西安的城墙，饮过成都著名的桃花酿，",
         "在武汉也见过大雪一场，往后将会看看苏州的杨，可这所有的所有啊，都不及你让我心安，不及你生得漂亮。"
     ];
@@ -111,6 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let yesButton = { text: "接受", x: 0, y: 0, width: 0, height: 0, isHovered: false };
     let noButton = { text: "考虑一下", x: 0, y: 0, width: 0, height: 0, isHovered: false };
     let startButton = { text: "出发！", x: 0, y: 0, width: 0, height: 0, isHovered: false };
+    let continueButton = { text: "继续", x: 0, y: 0, width: 0, height: 0, isHovered: false };
 
     // Layout properties
     let textArea = { x: 0, y: 0, width: 0, height: 0 };
@@ -145,9 +159,17 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.font = `${isMobile ? 1 : 1.2}rem 'Ma Shan Zheng', cursive`;
         const lineHeight = isMobile ? 25 : 30;
         let totalTextHeight = 0;
-        const messageToMeasure = currentState === 'initial' ? initialMessage : acceptedMessage;
+        const messageToMeasure = currentState === 'pre-initial' ? preInitialMessage : 
+                               currentState === 'initial' ? initialMessage : acceptedMessage;
 
-        if (currentState === 'initial') {
+        if (currentState === 'pre-initial') {
+            totalTextHeight += 60;
+            messageToMeasure.forEach(paragraph => {
+                const lines = getWrappedTextLines(ctx, paragraph, textArea.width);
+                totalTextHeight += lines.length * lineHeight;
+            });
+            totalTextHeight += 100;
+        } else if (currentState === 'initial') {
             totalTextHeight += 60;
             totalTextHeight += heartSize * 0.7;
             messageToMeasure.forEach(paragraph => {
@@ -181,20 +203,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Calculate button dimensions
         ctx.font = `1.1rem 'Ma Shan Zheng', cursive`;
-        const yesBtnPadding = { x: 30, y: 15 };
-        const noBtnPadding = { x: 30, y: 15 };
+        const btnPadding = { x: 30, y: 15 };
 
         const yesBtnMetrics = ctx.measureText(yesButton.text);
-        yesButton.width = yesBtnMetrics.width + yesBtnPadding.x * 2;
-        yesButton.height = 25 + yesBtnPadding.y * 2;
+        yesButton.width = yesBtnMetrics.width + btnPadding.x * 2;
+        yesButton.height = 25 + btnPadding.y * 2;
 
         const noBtnMetrics = ctx.measureText(noButton.text);
-        noButton.width = noBtnMetrics.width + noBtnPadding.x * 2;
-        noButton.height = 25 + noBtnPadding.y * 2;
+        noButton.width = noBtnMetrics.width + btnPadding.x * 2;
+        noButton.height = 25 + btnPadding.y * 2;
 
         const startBtnMetrics = ctx.measureText(startButton.text);
-        startButton.width = startBtnMetrics.width + yesBtnPadding.x * 2;
-        startButton.height = 25 + yesBtnPadding.y * 2;
+        startButton.width = startBtnMetrics.width + btnPadding.x * 2;
+        startButton.height = 25 + btnPadding.y * 2;
+
+        const continueBtnMetrics = ctx.measureText(continueButton.text);
+        continueButton.width = continueBtnMetrics.width + btnPadding.x * 2;
+        continueButton.height = 25 + btnPadding.y * 2;
 
         const buttonGap = isMobile ? 30 : 20;
         const totalButtonWidth = yesButton.width + noButton.width + buttonGap;
@@ -208,6 +233,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         startButton.x = canvas.width * 0.5 - startButton.width * 0.5;
         startButton.y = buttonsY + 50;
+
+        continueButton.x = canvas.width * 0.5 - continueButton.width * 0.5;
+        continueButton.y = buttonsY + 50;
 
         if (imageLoaded && scene) {
             scene.adjustTreePosition(canvas.width, canvas.height);
@@ -804,14 +832,85 @@ document.addEventListener('DOMContentLoaded', () => {
     riderElement.style.position = 'absolute';
     riderElement.style.zIndex = '2';
     riderElement.style.pointerEvents = 'none';
+    riderElement.style.display = 'none'; // Initially hidden
     document.body.appendChild(riderElement);
+
+    // Create flower image element
+    const flowerElement = document.createElement('img');
+    flowerElement.src = 'flower.webp';
+    flowerElement.style.position = 'absolute';
+    flowerElement.style.zIndex = '2';
+    flowerElement.style.pointerEvents = 'none';
+    flowerElement.style.display = 'none'; // Initially hidden
+    document.body.appendChild(flowerElement);
 
     // Animation loop
     function animate(currentTime) {
         // Clear canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        if (currentState === 'initial') {
+        if (currentState === 'pre-initial') {
+            riderElement.style.display = 'none'; // Hide rider
+            // Show and position flower
+            const flowerSize = Math.min(canvas.width, canvas.height) * 0.4; // 40% of the smaller dimension
+            flowerElement.style.display = 'block';
+            flowerElement.style.width = `${flowerSize}px`;
+            flowerElement.style.height = `${flowerSize}px`;
+            flowerElement.style.right = '350px';
+            flowerElement.style.bottom = '250px';
+
+            // Draw background gradient for pre-initial state
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#f3e7e9');
+            gradient.addColorStop(1, '#e3eeff');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw text content more towards center
+            const textX = canvas.width * 0.25; // 25% from left edge
+            const textY = canvas.height * 0.25; // 25% from top
+            const textWidth = canvas.width * 0.35; // 35% of canvas width for text
+
+            // Draw title
+            ctx.fillStyle = '#ff4b4b';
+            ctx.textAlign = 'left';
+            ctx.font = `${window.innerWidth <= 768 ? 2 : 2.5}rem 'Ma Shan Zheng', cursive`;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+            ctx.shadowBlur = 4;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            ctx.fillText("致亲爱的越", textX, textY);
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+
+            // Draw message
+            const lineHeight = window.innerWidth <= 768 ? 25 : 30;
+            ctx.fillStyle = '#666';
+            ctx.font = `${window.innerWidth <= 768 ? 1 : 1.2}rem 'Ma Shan Zheng', cursive`;
+            let currentY = textY + 60;
+            preInitialMessage.forEach(paragraph => {
+                const lines = getWrappedTextLines(ctx, paragraph, textWidth);
+                lines.forEach(line => {
+                    ctx.fillText(line, textX, currentY);
+                    currentY += lineHeight;
+                });
+                currentY += lineHeight * 0.5;
+            });
+            
+            // Draw continue button
+            const radius = 25;
+            const continueBtnColor = continueButton.isHovered ? '#ff3333' : '#ff4b4b';
+            drawRoundedRect(ctx, continueButton.x, continueButton.y, continueButton.width, continueButton.height, radius, continueBtnColor);
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = `1.1rem 'Ma Shan Zheng', cursive`;
+            ctx.fillText(continueButton.text, continueButton.x + continueButton.width * 0.5, continueButton.y + continueButton.height * 0.5);
+        } else if (currentState === 'initial') {
+            flowerElement.style.display = 'none'; // Hide flower
+            riderElement.style.display = 'none'; // Hide rider
             // Draw background gradient for initial state
             const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
             gradient.addColorStop(0, '#f3e7e9');
@@ -830,6 +929,7 @@ document.addEventListener('DOMContentLoaded', () => {
             drawTextContent(ctx, initialMessage, heartY + heartSize * 0.7 + (window.innerWidth <= 768 ? 10 : 20), textArea.width, lineHeight);
             drawButtons(ctx);
         } else if (currentState === 'accepted') {
+            riderElement.style.display = 'none'; // Hide rider
             // Update and draw day/night cycle
             dayNightCycle.update(currentTime);
             dayNightCycle.draw(ctx, canvas.width, canvas.height);
@@ -848,6 +948,7 @@ document.addEventListener('DOMContentLoaded', () => {
             drawTextContent(ctx, acceptedMessage, titleY + 60 + (window.innerWidth <= 768 ? 10 : 20), textArea.width, lineHeight);
             drawButtons(ctx);
         } else if (currentState === 'journey') {
+            riderElement.style.display = 'block'; // Show rider
             // Draw background gradient for journey state
             const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
             gradient.addColorStop(0, '#87CEEB');  // Sky blue
@@ -894,6 +995,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let yesHovered = mouseX > yesButton.x && mouseX < yesButton.x + yesButton.width && mouseY > yesButton.y && mouseY < yesButton.y + yesButton.height;
         let noHovered = mouseX > noButton.x && mouseX < noButton.x + noButton.width && mouseY > noButton.y && mouseY < noButton.y + noButton.height;
         let startHovered = mouseX > startButton.x && mouseX < startButton.x + startButton.width && mouseY > startButton.y && mouseY < startButton.y + startButton.height;
+        let continueHovered = mouseX > continueButton.x && mouseX < continueButton.x + continueButton.width && mouseY > continueButton.y && mouseY < continueButton.y + continueButton.height;
 
         if (yesHovered !== yesButton.isHovered) {
             yesButton.isHovered = yesHovered;
@@ -923,6 +1025,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (startHovered !== startButton.isHovered) {
             startButton.isHovered = startHovered;
         }
+        if (continueHovered !== continueButton.isHovered) {
+            continueButton.isHovered = continueHovered;
+        }
     });
 
     // Handle clicks on canvas for buttons
@@ -931,7 +1036,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
 
-        if (currentState === 'initial') {
+        if (currentState === 'pre-initial') {
+            const continueClicked = mouseX > continueButton.x && mouseX < continueButton.x + continueButton.width && 
+                                  mouseY > continueButton.y && mouseY < continueButton.y + continueButton.height;
+            
+            if (continueClicked) {
+                currentState = 'initial';
+            }
+        } else if (currentState === 'initial') {
             const yesClicked = mouseX > yesButton.x && mouseX < yesButton.x + yesButton.width && 
                              mouseY > yesButton.y && mouseY < yesButton.y + yesButton.height;
             const noClicked = mouseX > noButton.x && mouseX < noButton.x + noButton.width && 
@@ -960,7 +1072,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const touchX = touch.clientX - rect.left;
         const touchY = touch.clientY - rect.top;
 
-        if (currentState === 'initial') {
+        if (currentState === 'pre-initial') {
+            const continueTouched = touchX > continueButton.x && touchX < continueButton.x + continueButton.width && 
+                                  touchY > continueButton.y && touchY < continueButton.y + continueButton.height;
+            
+            if (continueTouched) {
+                currentState = 'initial';
+            }
+        } else if (currentState === 'initial') {
             const yesTouched = touchX > yesButton.x && touchX < yesButton.x + yesButton.width && 
                              touchY > yesButton.y && touchY < yesButton.y + yesButton.height;
             const noTouched = touchX > noButton.x && touchX < noButton.x + noButton.width && 
