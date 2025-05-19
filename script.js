@@ -15,16 +15,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Image loading
     const cherryTreeImage = new Image();
-    cherryTreeImage.src = 'cherry_tree.png'; // Make sure cherry_tree.png is in the same directory or specify path
+    cherryTreeImage.src = 'cherry_tree.png';
+    const loverImage = new Image();
+    loverImage.src = 'lover.png';
+    const sunImage = new Image();
+    sunImage.src = 'sun.png';
+    const moonImage = new Image();
+    moonImage.src = 'moon.png';
+    const arrowImage = new Image();
+    arrowImage.src = 'arrow.png';
     let imageLoaded = false;
+    let loverImageLoaded = false;
+    let sunImageLoaded = false;
+    let moonImageLoaded = false;
+    let arrowImageLoaded = false;
+
+    // Load landscape images
+    const landscapeImages = [];
+    const landscapeImageNames = ['beijing', 'shanghai', 'xizang', 'guilin'];
+    let landscapeImagesLoaded = 0;
+    let currentLandscapeIndex = 0;
+
+    landscapeImageNames.forEach(name => {
+        const img = new Image();
+        img.src = `landscape/${name}.png`;
+        img.onload = () => {
+            landscapeImagesLoaded++;
+            console.log(`Loaded landscape image: ${name}.png`);
+            if (landscapeImagesLoaded === landscapeImageNames.length) {
+                console.log('All landscape images loaded');
+            }
+        };
+        img.onerror = () => {
+            console.error(`Failed to load landscape image: ${name}.png`);
+        };
+        landscapeImages.push(img);
+    });
+
+    arrowImage.onload = () => {
+        arrowImageLoaded = true;
+    };
 
     cherryTreeImage.onload = () => {
         imageLoaded = true;
-        // Once image is loaded, resize and start animation immediately
         resizeCanvas();
-        // Start the animation loop with the initial time
-        // The image animation will now start immediately as delayDuration is skipped
         animate(performance.now());
+    };
+
+    loverImage.onload = () => {
+        loverImageLoaded = true;
+    };
+
+    sunImage.onload = () => {
+        sunImageLoaded = true;
+    };
+
+    moonImage.onload = () => {
+        moonImageLoaded = true;
     };
 
     // State
@@ -40,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const acceptedMessage = [
         "❤️ 让我们一起去看看这个世界 ❤️",
         "重庆的雨、西安的城墙、成都的桃花酿、武汉的雪、苏州的杨...",
+        "还有西藏的天山、北京的长城、上海的滩、桂林的山水...",
         "这一次，我们一起去看。"
     ];
     const titleText = "致亲爱的越";
@@ -434,31 +482,295 @@ document.addEventListener('DOMContentLoaded', () => {
     // Create scene instance
     let scene = new CherryBlossomScene();
 
+    // Day/Night Cycle Manager
+    class DayNightCycle {
+        constructor() {
+            this.isDay = true;
+            this.transitionProgress = 0;
+            this.transitionDuration = 15 * 1000; // 15 seconds
+            this.lastTransitionTime = performance.now();
+            this.fadeDuration = 2000; // 2 seconds fade
+            this.fadeStartTime = null;
+            this.isFading = false;
+        }
+
+        update(currentTime) {
+            const elapsed = currentTime - this.lastTransitionTime;
+            if (elapsed >= this.transitionDuration) {
+                if (!this.isFading) {
+                    this.isFading = true;
+                    this.fadeStartTime = currentTime;
+                }
+                
+                const fadeElapsed = currentTime - this.fadeStartTime;
+                if (fadeElapsed >= this.fadeDuration) {
+                    this.isDay = !this.isDay;
+                    this.lastTransitionTime = currentTime;
+                    this.transitionProgress = 0;
+                    this.isFading = false;
+                    // Change landscape image when day/night changes
+                    currentLandscapeIndex = (currentLandscapeIndex + 1) % landscapeImageNames.length;
+                } else {
+                    this.transitionProgress = fadeElapsed / this.fadeDuration;
+                }
+            } else {
+                this.transitionProgress = elapsed / this.transitionDuration;
+            }
+        }
+
+        draw(ctx, canvasWidth, canvasHeight) {
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
+            
+            if (this.isDay) {
+                // Day to night transition
+                const dayColor = `rgba(135, 206, 235, ${1 - this.transitionProgress})`;
+                const nightColor = `rgba(25, 25, 112, ${this.transitionProgress})`;
+                gradient.addColorStop(0, this.isFading ? dayColor : '#87CEEB');
+                gradient.addColorStop(1, this.isFading ? nightColor : '#FFFFFF');
+            } else {
+                // Night to day transition
+                const nightColor = `rgba(25, 25, 112, ${1 - this.transitionProgress})`;
+                const dayColor = `rgba(135, 206, 235, ${this.transitionProgress})`;
+                gradient.addColorStop(0, this.isFading ? nightColor : '#191970');
+                gradient.addColorStop(1, this.isFading ? dayColor : '#000033');
+            }
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        }
+    }
+
+    // Weather Effect Manager
+    class WeatherEffect {
+        constructor() {
+            this.weatherTypes = ['sunny', 'rainy', 'snowy', 'cloudy'];
+            this.currentWeather = 'sunny';
+            this.lastWeatherChange = performance.now();
+            this.weatherDuration = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+            this.moonPhase = 0;
+            this.moonPhaseChangeTime = performance.now();
+            this.moonPhaseDuration = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+            this.sunSize = 100;  // Size of sun image
+            this.moonSize = 80;  // Size of moon image
+            this.landscapeSize = 300; // Size of landscape image
+        }
+
+        update(currentTime) {
+            // Update moon phase
+            const moonElapsed = currentTime - this.moonPhaseChangeTime;
+            if (moonElapsed >= this.moonPhaseDuration) {
+                this.moonPhaseChangeTime = currentTime;
+            }
+            this.moonPhase = (moonElapsed % this.moonPhaseDuration) / this.moonPhaseDuration;
+
+            // Change weather every 24 hours
+            if (currentTime - this.lastWeatherChange >= this.weatherDuration) {
+                const oldWeather = this.currentWeather;
+                this.currentWeather = this.weatherTypes[Math.floor(Math.random() * this.weatherTypes.length)];
+                this.lastWeatherChange = currentTime;
+
+                // 如果天气变为下雨，创建雨滴效果
+                if (this.currentWeather === 'rainy' && oldWeather !== 'rainy') {
+                    createRaindrops();
+                }
+                // 如果天气从下雨变为其他，移除雨滴效果
+                else if (oldWeather === 'rainy' && this.currentWeather !== 'rainy') {
+                    const raindrops = document.querySelectorAll('.raindrop');
+                    raindrops.forEach(drop => drop.remove());
+                }
+            }
+        }
+
+        drawSun(ctx) {
+            if (sunImageLoaded) {
+                const x = canvas.width * 0.1;  // 10% from left
+                const y = canvas.height * 0.1; // 10% from top
+                ctx.drawImage(sunImage, x, y, this.sunSize, this.sunSize);
+            }
+        }
+
+        drawMoon(ctx) {
+            if (moonImageLoaded) {
+                const x = canvas.width * 0.1;  // 10% from left
+                const y = canvas.height * 0.1; // 10% from top
+                ctx.drawImage(moonImage, x, y, this.moonSize, this.moonSize);
+            }
+        }
+
+        drawLandscape(ctx) {
+            if (landscapeImagesLoaded === landscapeImageNames.length) {
+                const x = canvas.width - this.landscapeSize - 200; // 20px from right edge
+                const y = 20; // 20px from top
+                ctx.drawImage(landscapeImages[currentLandscapeIndex], x, y, this.landscapeSize*1.5, this.landscapeSize*1.5);
+            }
+        }
+
+        drawStars(ctx) {
+            if (!dayNightCycle.isDay) {
+                const starCount = 50; // 减少星星数量
+
+                for (let i = 0; i < starCount; i++) {
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * (canvas.height * 0.4); // 减少星星分布范围
+                    const size = Math.random() * 1.5 + 0.5; // 减小星星大小
+                    const brightness = Math.random() * 0.3 + 0.2; // 降低亮度
+                    
+                    ctx.globalAlpha = brightness;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        drawArrow(ctx) {
+            if (arrowImageLoaded) {
+                const x = canvas.width * 0.5 - 50; // Center horizontally
+                const y = canvas.height * 0.5 - 50; // Center vertically
+                ctx.drawImage(arrowImage, x, y, 250, 250); // Size of arrow image
+            }
+        }
+
+        draw(ctx) {
+            // Draw landscape first
+            this.drawLandscape(ctx);
+
+            // Draw arrow in center
+            this.drawArrow(ctx);
+
+            // Draw sun or moon based on day/night cycle
+            if (dayNightCycle.isDay && this.currentWeather === 'sunny') {
+                this.drawSun(ctx);
+            } else if (!dayNightCycle.isDay) {
+                this.drawMoon(ctx);
+                this.drawStars(ctx);
+            }
+        }
+    }
+
+    // Weather Particles
+    class SnowFlake {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.size = Math.random() * 3 + 2;
+            this.speed = Math.random() * 2 + 1;
+            this.swing = Math.random() * 0.5;
+            this.swingOffset = Math.random() * Math.PI * 2;
+        }
+
+        update() {
+            this.y += this.speed;
+            this.x += Math.sin(this.swingOffset) * this.swing;
+            this.swingOffset += 0.02;
+        }
+
+        isDead() {
+            return this.y > canvas.height;
+        }
+
+        draw(ctx) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    class Cloud {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.width = Math.random() * 100 + 50;
+            this.height = Math.random() * 30 + 20;
+            this.speed = Math.random() * 0.5 + 0.2;
+        }
+
+        update() {
+            this.x += this.speed;
+            if (this.x > canvas.width) {
+                this.x = -this.width;
+            }
+        }
+
+        isDead() {
+            return false;
+        }
+
+        draw(ctx) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.beginPath();
+            ctx.ellipse(this.x, this.y, this.width, this.height, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    // Lover class for drawing the lover character
+    class Lover {
+        constructor() {
+            this.x = 0;
+            this.y = 0;
+            this.width = 550;  // Adjust size as needed
+            this.height = 550; // Adjust size as needed
+        }
+
+        update(canvasWidth, canvasHeight) {
+            this.x = canvasWidth * 0.1;
+            this.y = canvasHeight * 0.5;
+        }
+
+        draw(ctx) {
+            if (loverImageLoaded) {
+                ctx.drawImage(loverImage, this.x, this.y, this.width, this.height);
+            }
+        }
+    }
+
+    // Create instances of new managers
+    let dayNightCycle = new DayNightCycle();
+    let weatherEffect = new WeatherEffect();
+    let lover = new Lover();
+
     // Animation loop
     // Use performance.now() for more accurate time tracking
     function animate(currentTime) {
         // Clear canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Draw background gradient
-        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-        gradient.addColorStop(0, '#f3e7e9');
-        gradient.addColorStop(1, '#e3eeff');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Update and draw cherry blossom scene
-        scene.update(currentTime);
-        scene.draw();
-
-        // Draw text content, heart, and buttons based on state
         if (currentState === 'initial') {
+            // Draw background gradient for initial state
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#f3e7e9');
+            gradient.addColorStop(1, '#e3eeff');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Update and draw cherry blossom scene
+            scene.update(currentTime);
+            scene.draw();
+
+            // Draw text content, heart, and buttons
             drawTitle(ctx, titleText, titleY, textArea.width);
             drawHeart(ctx, heartX, heartY, heartSize);
             const lineHeight = window.innerWidth <= 768 ? 25 : 30;
             drawTextContent(ctx, initialMessage, heartY + heartSize * 0.7 + (window.innerWidth <= 768 ? 10 : 20), textArea.width, lineHeight);
             drawButtons(ctx);
         } else if (currentState === 'accepted') {
+            // Update and draw day/night cycle
+            dayNightCycle.update(currentTime);
+            dayNightCycle.draw(ctx, canvas.width, canvas.height);
+
+            // Update and draw weather effects
+            weatherEffect.update(currentTime);
+            weatherEffect.draw(ctx);
+
+            // Update and draw lover
+            lover.update(canvas.width, canvas.height);
+            lover.draw(ctx);
+            
+            // Draw text content
             drawTitle(ctx, acceptedTitle, titleY, textArea.width);
             const lineHeight = window.innerWidth <= 768 ? 25 : 30;
             drawTextContent(ctx, acceptedMessage, titleY + 60 + (window.innerWidth <= 768 ? 10 : 20), textArea.width, lineHeight);
@@ -576,6 +888,25 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 firework.remove();
             }, 5000);
+        }
+    }
+
+    // 雨滴效果
+    function createRaindrops() {
+        // 清除现有的雨滴
+        const existingRaindrops = document.querySelectorAll('.raindrop');
+        existingRaindrops.forEach(drop => drop.remove());
+
+        // 创建新的雨滴
+        for (let i = 0; i < 100; i++) {
+            const raindrop = document.createElement('div');
+            raindrop.className = 'raindrop';
+            raindrop.style.left = Math.random() * 100 + 'vw';
+            raindrop.style.animationDuration = (Math.random() * 0.5 + 0.5) + 's'; // 0.5-1秒
+            raindrop.style.animationDelay = (Math.random() * 0.5) + 's'; // 0-0.5秒延迟
+            raindrop.style.height = (Math.random() * 10 + 15) + 'px'; // 15-25px高度
+            raindrop.style.opacity = (Math.random() * 0.3 + 0.3).toString(); // 0.3-0.6透明度
+            document.body.appendChild(raindrop);
         }
     }
 
