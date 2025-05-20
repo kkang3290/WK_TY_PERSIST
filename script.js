@@ -958,7 +958,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Draw text content and heart
             drawTitle(ctx, titleText, titleY, textArea.width);
-            drawHeart(ctx, heartX, heartY, heartSize);
+            drawHeart(ctx, heartX, heartY * 0.9, heartSize);
             const lineHeight = window.innerWidth <= 768 ? 25 : 30;
             drawTextContent(ctx, initialMessage, heartY + heartSize * 0.7 + (window.innerWidth <= 768 ? 10 : 20), textArea.width, lineHeight);
             
@@ -1068,7 +1068,7 @@ document.addEventListener('DOMContentLoaded', () => {
             noButton.isHovered = noHovered;
             if (noButton.isHovered && currentState === 'initial') {
                 rejectCount++;
-                if (rejectCount >= 3) {
+                if (rejectCount >= 2) {
                     noButton.text = "我同意";
                 } else {
                     // Ensure button stays within visible area on mobile
