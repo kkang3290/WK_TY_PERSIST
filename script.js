@@ -1036,7 +1036,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ctx.font = `${isMobile ? 1.5 : 2}rem "Ma Shan Zheng", cursive`;
                     ctx.textAlign = 'center';
                     ctx.fillText(
-                        `我们已经一起度过了 ${elapsedSeconds} 秒`, 
+                        `我们已经一起度过了 ${elapsedSeconds} 天`, 
                         canvas.width * 0.5, 
                         canvas.height * 0.3 // Position text at 30% of screen height
                     );
